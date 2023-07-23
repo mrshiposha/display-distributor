@@ -1,0 +1,20 @@
+[package]
+name = "display-distributor"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "display-distributor"
+path = "src/main.rs"
+
+[dependencies]
+log = "0.4.19"
+systemd-journal-logger = "1.0.0"
+clap = { version = "4.3.16", features = ["derive"] }
+dbus = "0.9"
+udev = "0.7"
+drm = { git = "https://github.com/mrshiposha/drm-rs", branch = "feature/drm-lease" }
+thiserror = "1.0.43"
