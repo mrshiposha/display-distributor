@@ -27,9 +27,6 @@ pub enum Error {
     #[error("Invalid message from a peer")]
     PeerBadMsg,
 
-    #[error("Seat \"{0}\" is busy")]
-    SeatBusy(SeatId),
-
     #[error("Serialization error: {0}")]
     Serialization(#[from] bincode::Error),
 

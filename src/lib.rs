@@ -6,6 +6,7 @@ pub enum ServerMessage {
     LeaseRevoked,
     LeaseNotFound,
     NoPermission,
+    SeatBusy,
 }
 
 #[derive(Serialize, Deserialize)]

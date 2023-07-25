@@ -206,7 +206,7 @@ impl Distributor {
 
     fn handle_client_message(
         &mut self,
-        mut stream: UnixStream,
+        stream: UnixStream,
         peer_pid: pid_t,
         peer_seat: SeatId,
         message: ClientMessage,
@@ -214,31 +214,52 @@ impl Distributor {
         use ClientMessage::*;
 
         match message {
-            RequestDisplays => {
-                if let Some(lease) = self.leases.get(&peer_seat) {
-                    if is_process_exist(lease.pid) {
-                        return Err(Error::SeatBusy(peer_seat));
-                    }
-                }
+            RequestDisplays => self.handle_request_displays(stream, peer_pid, peer_seat)?,
+            ReleaseDisplays => self.handle_release_displays(stream, peer_pid, peer_seat)?,
+        }
 
-                let mut lease = Lease::new(peer_pid);
-                for (card_node, card) in self.cards.iter() {
-                    let displays_lease = card.lease_displays(&peer_seat)?;
-                    lease.add_displays(card_node.clone(), displays_lease);
-                }
-                stream.send_lease(lease)?;
+        Ok(())
+    }
+
+    fn handle_request_displays(
+        &mut self,
+        mut stream: UnixStream,
+        peer_pid: pid_t,
+        peer_seat: SeatId,
+    ) -> Result<(), Error> {
+        if let Some(lease) = self.leases.get(&peer_seat) {
+            if is_process_exist(lease.pid) {
+                stream.send_msg(ServerMessage::SeatBusy)?;
+                return Ok(());
             }
-            ReleaseDisplays => match self.leases.entry(peer_seat) {
-                Entry::Occupied(entry) => {
-                    if entry.get().pid == peer_pid {
-                        let lease = entry.remove();
-                        self.revoke_lease(stream, lease)?;
-                    } else {
-                        stream.send_msg(ServerMessage::NoPermission)?;
-                    }
+        }
+
+        let mut lease = Lease::new(peer_pid);
+        for (card_node, card) in self.cards.iter() {
+            let displays_lease = card.lease_displays(&peer_seat)?;
+            lease.add_displays(card_node.clone(), displays_lease);
+        }
+        stream.send_lease(lease)?;
+
+        Ok(())
+    }
+
+    fn handle_release_displays(
+        &mut self,
+        mut stream: UnixStream,
+        peer_pid: pid_t,
+        peer_seat: SeatId,
+    ) -> Result<(), Error> {
+        match self.leases.entry(peer_seat) {
+            Entry::Occupied(entry) => {
+                if entry.get().pid == peer_pid {
+                    let lease = entry.remove();
+                    self.revoke_lease(stream, lease)?;
+                } else {
+                    stream.send_msg(ServerMessage::NoPermission)?;
                 }
-                _ => stream.send_msg(ServerMessage::LeaseNotFound)?,
-            },
+            }
+            _ => stream.send_msg(ServerMessage::LeaseNotFound)?,
         }
 
         Ok(())
