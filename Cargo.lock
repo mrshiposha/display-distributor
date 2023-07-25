@@ -217,6 +217,7 @@ dependencies = [
  "drm",
  "libc",
  "log",
+ "nix",
  "sendfd",
  "serde",
  "systemd-journal-logger",
@@ -412,6 +413,7 @@ dependencies = [
  "cfg-if",
  "libc",
  "memoffset",
+ "pin-utils",
  "static_assertions",
 ]
 
@@ -430,6 +432,12 @@ name = "once_cell"
 version = "1.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dd8b5dd2ae5ed71462c540258bedcb51965123ad7e7ccf4b9a8cafaa4a63576d"
+
+[[package]]
+name = "pin-utils"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
 name = "pkg-config"

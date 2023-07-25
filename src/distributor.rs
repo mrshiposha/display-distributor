@@ -234,12 +234,11 @@ impl Distributor {
             }
         }
 
-        let mut lease = Lease::new(peer_pid);
-        for (card_node, card) in self.cards.iter() {
-            let displays_lease = card.lease_displays(&peer_seat)?;
-            lease.add_displays(card_node.clone(), displays_lease);
+        match self.create_lease(peer_pid, peer_seat) {
+            Ok(lease) => stream.send_lease(lease)?,
+            Err(Error::NoDisplays) => stream.send_msg(ServerMessage::NoDisplays)?,
+            Err(_) => unreachable!(),
         }
-        stream.send_lease(lease)?;
 
         Ok(())
     }
@@ -265,6 +264,29 @@ impl Distributor {
         Ok(())
     }
 
+    fn create_lease(&mut self, peer_pid: pid_t, peer_seat: SeatId) -> Result<Lease, Error> {
+        let mut lease = Lease::new(peer_pid);
+
+        for (card_node, card) in self.cards.iter() {
+            match card.lease_displays(&peer_seat) {
+                Ok(displays_lease) => lease.add_displays(card_node.clone(), displays_lease),
+                Err(Error::NoDisplays) => {}
+                Err(err) => error!(
+                    "Unable to lease {} displays to Seat \"{}\": {}",
+                    card_node.display(),
+                    peer_seat,
+                    err,
+                ),
+            }
+        }
+
+        if lease.lease_fds.is_empty() {
+            Err(Error::NoDisplays)
+        } else {
+            Ok(lease)
+        }
+    }
+
     fn revoke_lease(&mut self, stream: UnixStream, lease: Lease) -> Result<(), Error> {
         for lease_info in lease.infos.iter() {
             let LeaseInfo {
@@ -282,7 +304,7 @@ impl Distributor {
 
             if let Err(err) = card.revoke_displays(*lessee_id) {
                 error!(
-                    "Unable to revoke lease on the device {}: {}",
+                    "Unable to revoke a lease on the device {}: {}",
                     card_node.display(),
                     err
                 );

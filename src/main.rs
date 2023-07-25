@@ -1,5 +1,4 @@
 use clap::Parser;
-use distributor::SeatId;
 use log::{error, info};
 use thiserror::Error;
 
@@ -21,11 +20,17 @@ pub enum Error {
     #[error("The current session is not bind to a seat")]
     NoSeat,
 
+    #[error("Seat has no displays")]
+    NoDisplays,
+
     #[error("Unable to discover a peer PID")]
     NoPeerPid,
 
     #[error("Invalid message from a peer")]
     PeerBadMsg,
+
+    #[error("DRM error: {0}")]
+    Drm(#[from] ::drm::SystemError),
 
     #[error("Serialization error: {0}")]
     Serialization(#[from] bincode::Error),
