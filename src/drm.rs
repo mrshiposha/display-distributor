@@ -1,16 +1,8 @@
-use std::{
-    collections::HashMap,
-    fs::File,
-    os::fd::RawFd,
-    path::{Path, PathBuf},
-};
+use std::{collections::HashMap, fs::File, os::fd::RawFd, path::Path};
 
 use drm::control::{connector, lease::LesseeId};
 
-use crate::{
-    distributor::{Pid, SeatId},
-    Error,
-};
+use crate::{distributor::SeatId, Error};
 
 type InterfaceId = u32;
 pub struct DisplayId(connector::Interface, InterfaceId);
@@ -54,7 +46,11 @@ impl Card {
         self.displays.entry(seat).or_default().push(display);
     }
 
-    pub fn lease_displays(&self, seat: SeatId) -> Result<(RawFd, LesseeId), Error> {
+    pub fn lease_displays(&self, seat: &SeatId) -> Result<(RawFd, LesseeId), Error> {
+        todo!()
+    }
+
+    pub fn revoke_displays(&self, lessee_id: LesseeId) -> Result<(), Error> {
         todo!()
     }
 }

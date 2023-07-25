@@ -1,7 +1,5 @@
-use std::sync::Arc;
-
 use clap::Parser;
-use ::dbus::blocking::Connection;
+use distributor::SeatId;
 use log::{error, info};
 use thiserror::Error;
 
@@ -23,8 +21,23 @@ pub enum Error {
     #[error("The current session is not bind to a seat")]
     NoSeat,
 
+    #[error("Unable to discover a peer PID")]
+    NoPeerPid,
+
+    #[error("Invalid message from a peer")]
+    PeerBadMsg,
+
+    #[error("Seat \"{0}\" is busy")]
+    SeatBusy(SeatId),
+
+    #[error("Serialization error: {0}")]
+    Serialization(#[from] bincode::Error),
+
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
+
+    #[error("Env error: {0}")]
+    Env(#[from] std::env::VarError),
 
     #[error("DBus error: {0}")]
     DBus(#[from] ::dbus::Error),
@@ -40,17 +53,16 @@ fn main() {
     let cli = Cli::parse();
     logging::setup(cli.log_level).expect("Couldn't setup logging");
 
-    if let Err(err) = run(cli) {
+    if let Err(err) = run() {
         error!("{err}");
     }
 }
 
-fn run(cli: Cli) -> Result<(), Error> {
+fn run() -> Result<(), Error> {
     info!("The {} is started", env!("CARGO_PKG_NAME"));
 
-    let dbus = Connection::new_system()?;
-    let mut distributor = Distributor::new(&dbus)?;
-    distributor.listen_clients();
+    let mut distributor = Distributor::new()?;
+    distributor.listen_clients()?;
 
     Ok(())
 }

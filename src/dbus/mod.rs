@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use crate::{distributor::SeatId, Error};
 use dbus::blocking::Connection;
-use log::{error, info, trace};
+use log::trace;
 
 pub mod login1 {
     pub mod manager;
@@ -11,29 +11,6 @@ pub mod login1 {
 
 use login1::manager::*;
 use login1::session::*;
-
-// pub async fn connection(mut tx: Sender<Arc<SyncConnection>>) {
-//     loop {
-//         info!("Acquiring the DBus connection...");
-
-//         let (resource, connection) = match dbus_tokio::connection::new_system_sync() {
-//             Ok(result) => result,
-//             Err(err) => {
-//                 error!("Unable to recreate the DBus connection: {err}");
-//                 continue;
-//             }
-//         };
-
-//         if let Err(err) = tx.send(connection).await {
-//             error!("Unable to recreate the DBus connection: {err}");
-//         }
-
-//         info!("Acquiring the DBus connection...DONE");
-
-//         let err = resource.await;
-//         error!("DBus connection lost: {err}");
-//     }
-// }
 
 pub trait ProcessSeat {
     fn process_seat(&self, pid: u32) -> Result<SeatId, Error>;

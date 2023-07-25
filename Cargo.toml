@@ -18,3 +18,8 @@ dbus = "0.9"
 udev = "0.7"
 drm = { git = "https://github.com/mrshiposha/drm-rs", branch = "feature/drm-lease" }
 thiserror = "1.0.43"
+sendfd = "0.4.3"
+unix-cred = "0.1.1"
+libc = "0.2"
+serde = "1.0"
+bincode = "1.3.3"
